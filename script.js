@@ -1,70 +1,142 @@
-// получить canvas
-const canvas = document.querySelector(".custom");
+// Находим canvas
+let canvas = document.querySelector(".canvas");
 
-// указать контекст для canvas и присвоить в переменную
+// опредили соотношение сторон canvas
+var heightRatio = 1;
+
+// зададим контекст
 let context = canvas.getContext("2d");
 
-// даёт возможность разделять элементы в canvas
-context.beginPath();
+// Получим ширину холста
+var w = canvas.width;
 
-// задать линии цвет
-context.strokeStyle = "red";
-// толщина линии
-context.lineWidth = "1";
-// указать координаты начала линии
-context.moveTo(100, 50);
-// указать координаты конца линии
-context.lineTo(150, 150);
-// нарисовать линию
-context.stroke();
+// Получим высоту холста из отношения 1 к 1
+var h = canvas.height = canvas.width * heightRatio;
+/*var h = canvas.height;*/
 
-// рисование можно продолжить, задав коордианты конца новой линии
-context.lineTo(250, 100);
-context.stroke();
+// здесь можно задать скорость движения частицы по орбите
+var dd = 0.4;
+
+// Угол вращения первого шара
+var angle = 50;
+
+// Угол вращения второго шара
+var angleTwo = 30;
+
+// Угол вращения тертьего шара
+var angleThree = -200;
+
+// Точка x для орбиты
+/*var cx = 335;*/
+var cx = 150;
+
+// Точка y для орбиты
+/*var cy = 335;*/
+var cy = 150;
+
+// Радиус орбиты
+var radius = 141;
+
+// Стили
+context.strokeStyle = "#B5BBC9";
+
+// Функция отрисовывает первый шар
+function drawOne(x, y, xTwo, yTwo, xThree, yThree) {
+    // очистить холст
+    context.clearRect(0, 0, w, h);
+
+    // Отрисовать первый шар
+    context.beginPath();
+    context.arc(x, y, 9, 0, Math.PI * 2, false);
+    context.fillStyle = "#0ED0FA";
+    context.fill();
+    context.closePath();
+
+    // Отрисовать второй шар
+    context.beginPath();
+    context.arc(xTwo, yTwo, 9, 0, Math.PI * 2, false);
+    context.fillStyle = "#0ED0FA";
+    context.fill();
+    context.closePath();
+
+    // Отрисовать третий шар
+    context.beginPath();
+    context.arc(xThree, yThree, 9, 0, Math.PI * 2, false);
+    context.fillStyle = "#0ED0FA";
+    context.fill();
+    context.closePath();
+};
+
+// 60 кадров в секунду
+var fps = 60;
+
+// https://developer.mozilla.org/ru/docs/DOM/window.requestAnimationFrame - вроде как, кроссбраузерно
+window.requestAnimFrame = (function (callback) {
+    return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
+        window.setTimeout(callback, 1000 / fps);
+    };
+})();
+
+//
+function animate() {
+    setTimeout(function () {
+        requestAnimFrame(animate);
+
+        // увеличить угол поворота для первого шара
+        angle += Math.acos(1 - Math.pow(dd / radius, 2) / 2);
+
+        // увеличить угол поворота для второго шара
+        angleTwo += Math.acos(1 - Math.pow(dd / radius, 2) / 2);
+
+        // увеличить угол поворота для второго шара
+        angleThree += Math.acos(1 - Math.pow(dd / radius, 2) / 2);
+
+        // рассчитать новые ball.x / ball.y
+        var newX = cx + radius * Math.cos(angle);
+        var newY = cy + radius * Math.sin(angle);
+
+        var newXTwo = cx + radius * Math.cos(angleTwo);
+        var newYTwo = cy + radius * Math.sin(angleTwo);
+
+        var newXThree = cx + radius * Math.cos(angleThree);
+        var newYThree = cy + radius * Math.sin(angleThree);
 
 
-// третья линия
-// даёт возможность разделять элементы в canvas
-context.beginPath();
-context.moveTo(250, 100);
-context.lineTo(300, 150);
-context.strokeStyle = "blue";
-context.lineWidth = "3"
-context.stroke()
+        // draw
+        drawOne(newX, newY, newXTwo, newYTwo, newXThree, newYThree);
 
-// четвёртая линия
-context.beginPath();
-context.moveTo(300, 100);
-context.lineTo(350, 100);
-context.strokeStyle = "green";
-context.lineWidth = 10;
+        // нарисуем орбиту для шаров
+        context.beginPath();
+        context.arc(cx, cy, radius, 0, Math.PI * 2, false);
 
-// округлить концы линии удобно, когда линии нужно друг сдругом соединять | так как они жёстко обрубаются по-умолчанию
-context.lineCap = "round"; // опционально
+        // Для z-index эфекта
+        context.globalCompositeOperation = "destination-over";
+        context.lineWidth = "0.8";
+        context.closePath();
+        context.stroke();
+        context.closePath();
 
-context.lineTo(350, 150);
+        /*Фон слайдера*/
+        context.beginPath();
+        context.arc(cx, cy, 120, 0, Math.PI * 2, false);
 
-context.stroke();
+        // тень второй окружности START по сss box-shadow элемента в макете
+        //context.shadowColor = "rgba(11,106,248,0.5)"; // цвет
+        //context.shadowBlur = "100"; // Степень размытия тени
+        //context.shadowOffsetX = "0"; // Смещение по оси x
+        //context.shadowOffsetY = "2"; // Смещение по оси y
+        // тень второй окружности END
 
-// сотрём всё
-context.clearRect(0, 0, 400, 200);
+        // заливка окружности START
+        let gradient = context.createLinearGradient(0, 850, 0, 0)
+        gradient.addColorStop(1, "#0ED0FA");
+        gradient.addColorStop(0.1, "#5530EA");
+        context.fillStyle = gradient;
+        context.fill();
+        // заливка второй окружности END
+        context.closePath();
 
-// новая фигура - треугольник
-context.beginPath();
-context.moveTo(50, 150);
-context.lineTo(150, 50);
-context.lineTo(250, 150);
-// Нижняя грань фигуры
-//context.lineTo(50, 150);
-context.strokeStyle = "green";
-context.lineCap = "round";
-context.lineWidth = "2";
+    }, 1000 / fps);
+}
 
-// ещё можно и так замкнуть фигуру
-context.closePath();
-
-context.stroke();
-
-// заливка
-context.fillStyle = "orange";
-context.fill();
+animate();
